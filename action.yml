@@ -144,7 +144,7 @@ runs:
 
     - name: Git
       if: always()
-      uses: silverstripe/gha-pull-request@main
+      uses: silverstripe/gha-pull-request@v1
       with:
         branch: ${{ steps.generate-branch-name.outputs.branch }}
         title: DEP Update JS dependencies
