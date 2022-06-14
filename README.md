@@ -20,5 +20,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Update JS
-        uses: silverstripe/gha-update-js@main
+        uses: silverstripe/gha-update-js@v1
 ```
