@@ -9,11 +9,13 @@ This action has no inputs. It is intended to be [run on a schedule](https://docs
 **.github/workflows/update-js.yml**
 ```yml
 name: Update JS
+
 on:
   # Run on a schedule of once per quarter
   schedule:
     - cron: '0 0 1 */3 *'
   workflow_dispatch:
+
 jobs:
   update-js:
     name: Update JS
