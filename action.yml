@@ -94,6 +94,7 @@ runs:
           exit 1
         fi
         JSON=$(cat __response.json)
+        rm __response.json
         NUMBERS=$(echo $JSON | jq '.[] | select(.title=="DEP Update JS dependencies" and .user.login=="github-actions[bot]") | .number')
         for NUMBER in $NUMBERS; do
           # https://docs.github.com/en/rest/pulls/pulls#update-a-pull-request
