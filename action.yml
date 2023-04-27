@@ -6,7 +6,7 @@ runs:
   steps:
 
     - name: Checkout code
-      uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # v2.4.2
+      uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2.7.0
 
     - name: Read .nvmrc
       id: read-nvm
@@ -15,7 +15,7 @@ runs:
         echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
 
     - name: Setup node
-      uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+      uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
       with:
         node-version: ${{ steps.read-nvm.outputs.version }}
 
