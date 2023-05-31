@@ -6,16 +6,16 @@ runs:
   steps:
 
     - name: Checkout code
-      uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # v2.4.2
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
     - name: Read .nvmrc
       id: read-nvm
       shell: bash
       run: |
-        echo ::set-output name=version::$(cat .nvmrc)
+        echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
 
     - name: Setup node
-      uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # v3.3.0
+      uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
       with:
         node-version: ${{ steps.read-nvm.outputs.version }}
 
@@ -52,8 +52,8 @@ runs:
         TEST="false"
         if [[ "$(jq .scripts.lint? package.json)" != "null" ]]; then LINT="true"; fi
         if [[ "$(jq .scripts.test? package.json)" != "null" ]]; then TEST="true"; fi
-        echo "::set-output name=lint::$LINT"
-        echo "::set-output name=test::$TEST"
+        echo "lint=$LINT" >> "$GITHUB_OUTPUT"
+        echo "test=$TEST" >> "$GITHUB_OUTPUT"
         echo "LINT is $LINT"
         echo "TEST is $TEST"
 
@@ -141,7 +141,7 @@ runs:
         CUT=$(echo $GITHUB_REF | cut -c 12-)
         # e.g. pulls/1/update-js-1647810133
         BRANCH=pulls/$CUT/update-js-$(date +%s)
-        echo ::set-output name=branch::$BRANCH
+        echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
     - name: Git
       if: always()

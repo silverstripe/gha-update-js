@@ -19,9 +19,8 @@ on:
 jobs:
   update-js:
     # Only run the cron on the account hosting this repository, not on the accounts of forks
-    # github.repository take the form of AccountName/repository-name
-    # Change '<account_name>/' to match the name of the account hosting this repository
-    if: startsWith(github.repository, '<account_name>/')
+    # Change '<account_name>' to match the name of the account hosting this repository
+    if: (github.event_name == 'schedule' && github.repository_owner == '<account_name>') || (github.event_name != 'schedule')
     name: Update JS
     runs-on: ubuntu-latest
     steps:
