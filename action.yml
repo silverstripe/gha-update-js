@@ -27,8 +27,8 @@ runs:
         DIR=$(pwd)
         cd ..
         git clone https://github.com/silverstripe/silverstripe-admin.git admin
+        # Assumption is that the default branch of admin is the correct one to build against
         cd admin
-        git checkout 1
         # yarn comes preinstalled with actions/setup-node
         yarn install
         cd $DIR
