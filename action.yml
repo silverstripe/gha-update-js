@@ -27,8 +27,8 @@ runs:
         DIR=$(pwd)
         cd ..
         git clone https://github.com/silverstripe/silverstripe-admin.git admin
+        # Assumption is that the default branch of admin is the correct one to build against
         cd admin
-        git checkout 1
         # yarn comes preinstalled with actions/setup-node
         yarn install
         cd $DIR
@@ -77,7 +77,7 @@ runs:
       if: always()
       shell: bash
       run: |
-        NODE_ENV=production node_modules/webpack/bin/webpack.js -p --bail --progress
+        NODE_ENV=production node_modules/.bin/webpack --mode production --bail --progress
 
     - name: Remove any old pull-requests
       if: always()
