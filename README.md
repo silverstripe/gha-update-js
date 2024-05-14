@@ -16,6 +16,8 @@ on:
     - cron: '0 0 1 */3 *'
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   update-js:
     # Only run the cron on the account hosting this repository, not on the accounts of forks
@@ -23,6 +25,10 @@ jobs:
     if: (github.event_name == 'schedule' && github.repository_owner == '<account_name>') || (github.event_name != 'schedule')
     name: Update JS
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-request: write
+      actions: write
     steps:
       - name: Update JS
         uses: silverstripe/gha-update-js@v1
