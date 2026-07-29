@@ -322,7 +322,7 @@ runs:
         cd admin
         git checkout $ADMIN_BRANCH
         # yarn comes preinstalled with actions/setup-node
-        yarn install
+        yarn install --ignore-scripts
         cd $DIR
 
     # Use `yarn install` rather than `yarn upgrade` to prevent the following error:
@@ -334,7 +334,7 @@ runs:
         if [[ -f yarn.lock ]]; then
           rm yarn.lock
         fi
-        yarn install
+        yarn install --ignore-scripts
 
     - name: Read package.json
       if: inputs.branch_type != 'schedule' && steps.derive-module-branch.outputs.proceed == '1'
