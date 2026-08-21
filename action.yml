@@ -288,6 +288,18 @@ runs:
       with:
         node-version: ${{ steps.read-nvm.outputs.version }}
 
+    - name: Enable corepack
+      if: inputs.branch_type != 'schedule' && steps.derive-module-branch.outputs.proceed == '1'
+      shell: bash
+      run: |
+        if [[ $(jq -r '.packageManager // empty' package.json) != yarn@4.* ]]; then
+          echo 'package.json must declare "packageManager": "yarn@4.x.y" - this action only supports yarn 4 via corepack'
+          exit 1
+        fi
+        # corepack is bundled with node 18 and provisions the yarn version declared in packageManager.
+        # Node 25+ does not bundle corepack - if node is bumped past 24, add npm install -g corepack first.
+        corepack enable
+
     - name: Create temporary artifacts directory
       if: inputs.branch_type != 'schedule'
       shell: bash
@@ -314,6 +326,13 @@ runs:
       shell: bash
       env:
         ADMIN_BRANCH: ${{ steps.derive-admin-branch.outputs.admin_branch }}
+        # Auto-approve corepack's yarn download
+        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        # Overrides admin's .yarnrc.yml so scripts stay disabled even if that file changes
+        YARN_ENABLE_SCRIPTS: "false"
+        # Limit concurrent npm requests to avoid rate limiting in CI - modules do not
+        # set networkConcurrency in .yarnrc.yml so local installs stay fast
+        YARN_NETWORK_CONCURRENCY: "1"
       run: |
         # Install admin js in sibling directory so shared components are available
         DIR=$(pwd)
@@ -321,20 +340,29 @@ runs:
         git clone https://github.com/silverstripe/silverstripe-admin.git admin
         cd admin
         git checkout $ADMIN_BRANCH
-        # yarn comes preinstalled with actions/setup-node
-        yarn install --ignore-scripts
+        # admin's own packageManager and .yarnrc.yml apply to this install
+        yarn install --immutable
         cd $DIR
 
-    # Use `yarn install` rather than `yarn upgrade` to prevent the following error:
-    # "error Outdated lockfile. Please run `yarn install` and try again."
+    # Deleting the lockfile and re-resolving updates dependencies within the package.json ranges.
+    # npmMinimalAgeGate in .yarnrc.yml excludes newly published versions.
     - name: Update yarn.lock
       if: inputs.branch_type != 'schedule' && steps.derive-module-branch.outputs.proceed == '1'
       shell: bash
+      env:
+        # Auto-approve corepack's yarn download - the first yarn call when the module is admin itself
+        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        # Overrides .yarnrc.yml so scripts stay disabled - this step resolves unreviewed versions
+        YARN_ENABLE_SCRIPTS: "false"
+        # Limit concurrent npm requests to avoid rate limiting in CI - modules do not
+        # set networkConcurrency in .yarnrc.yml so local installs stay fast
+        YARN_NETWORK_CONCURRENCY: "1"
       run: |
         if [[ -f yarn.lock ]]; then
           rm yarn.lock
         fi
-        yarn install --ignore-scripts
+        # --no-immutable because this step regenerates the lockfile
+        yarn install --no-immutable
 
     - name: Read package.json
       if: inputs.branch_type != 'schedule' && steps.derive-module-branch.outputs.proceed == '1'
