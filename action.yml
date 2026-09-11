@@ -361,8 +361,26 @@ runs:
         if [[ -f yarn.lock ]]; then
           rm yarn.lock
         fi
+        # Log to a file outside the checkout so it is not picked up as a change later on
+        LOG=$(mktemp)
         # --no-immutable because this step regenerates the lockfile
-        yarn install --no-immutable
+        if ! yarn install --no-immutable 2>&1 | tee $LOG; then
+          if ! grep -q 'YN0016.*quarantined' $LOG; then
+            rm $LOG
+            exit 1
+          fi
+          rm $LOG
+          # npmMinimalAgeGate is a sliding window, so a package can become old enough to resolve
+          # minutes before the platform binaries it pins to an exact version do, leaving that exact
+          # version with nothing to resolve to. Retrying with a longer gate quarantines the parent
+          # as well, so the whole set falls back to the previous release. Escalating the gate only
+          # ever excludes more versions, never fewer, so this cannot resolve something unreviewed.
+          GATE=$(yarn config get npmMinimalAgeGate)
+          RETRY_GATE=$(($GATE + 1440))
+          echo "Resolution hit the minimal age gate - retrying with npmMinimalAgeGate $RETRY_GATE instead of $GATE"
+          rm -f yarn.lock
+          YARN_NPM_MINIMAL_AGE_GATE=$RETRY_GATE yarn install --no-immutable
+        fi
 
     - name: Read package.json
       if: inputs.branch_type != 'schedule' && steps.derive-module-branch.outputs.proceed == '1'
